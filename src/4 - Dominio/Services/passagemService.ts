@@ -20,15 +20,34 @@ export class PassagemService {
     return situacao;
   }
 
-  async reservaLugar(passageiro: Passageiro, onibus: Onibus, rota: Rota) {
+  async procuraPassagem(pontoChegada: string) {
+    console.log("@@@@@@@@@@@" + pontoChegada);
+    let passagem = await this.repositorio.findOne({
+      where: {
+        fimViagem: pontoChegada,
+      },
+    });
+    if (passagem?.fimViagem == pontoChegada && passagem != null) {
+      return passagem;
+    }
+    return null;
+  }
+
+  async reservaLugar(
+    passageiro: Passageiro,
+    onibus: Onibus,
+    rota: Rota,
+    inicio: string,
+    fim: string
+  ) {
     let lugaresDisponiveis = this.verificaLugar(onibus.lugares);
     if (!lugaresDisponiveis) {
       throw new Error("Nao existe vaga no onibus");
     }
     onibus.lugares -= 1;
     const passagem = new Passagem();
-    passagem.comecoViagem = "centro";
-    passagem.fimViagem = "copacabana";
+    passagem.comecoViagem = inicio;
+    passagem.fimViagem = fim;
     passagem.horario = new Date();
     passagem.passageiro = passageiro;
 
@@ -45,5 +64,14 @@ export class PassagemService {
     passagem.valor = 10;
     await this.repositorio.save(passagem);
     return passagem;
+  }
+
+  async liberaLugar(pontoChegada: string, onibus: Onibus) {
+    let saida = await this.procuraPassagem(pontoChegada);
+    if (saida == null) {
+      return 0;
+    }
+
+    return (onibus.lugares += 1);
   }
 }

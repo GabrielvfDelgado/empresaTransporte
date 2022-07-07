@@ -29,7 +29,13 @@ describe("Passagem Service", () => {
     onibus.lugares = 28;
     onibus.tipo = "leito";
 
-    const reserva = await service.reservaLugar(passageiro, onibus, rota);
+    const reserva = await service.reservaLugar(
+      passageiro,
+      onibus,
+      rota,
+      "centro",
+      "copacabana"
+    );
 
     expect(reserva).toBeDefined();
     expect(reserva.passageiro.nome).toBe("Gabriel");
@@ -62,5 +68,55 @@ describe("Passagem Service", () => {
 
     expect(vaga).toBeDefined();
     expect(vaga).toBe(true);
+  });
+
+  it("Libera lugar no Onibus", async () => {
+    const rota = new Rota();
+    rota.paradas = ["centro", "flamengo", "botafogo", "copacabana"];
+
+    const passageiro = new Passageiro();
+    passageiro.nome = "Gabriel";
+
+    const onibus = new Onibus();
+    onibus.lugares = 28;
+    onibus.tipo = "leito";
+
+    const passageiro1 = await service.reservaLugar(
+      passageiro,
+      onibus,
+      rota,
+      "centro",
+      "copacabana"
+    );
+
+    const passageiro2 = await service.reservaLugar(
+      passageiro,
+      onibus,
+      rota,
+      "centro",
+      "flamengo"
+    );
+
+    const passageiro3 = await service.reservaLugar(
+      passageiro,
+      onibus,
+      rota,
+      "centro",
+      "botafogo"
+    );
+
+    expect(onibus.lugares).toBe(25);
+
+    jest.spyOn(repositorio, "findOne").mockResolvedValueOnce(passageiro2);
+    await service.liberaLugar("flamengo", onibus);
+    expect(onibus.lugares).toBe(26);
+
+    jest.spyOn(repositorio, "findOne").mockResolvedValueOnce(passageiro3);
+    await service.liberaLugar("botafogo", onibus);
+    expect(onibus.lugares).toBe(27);
+
+    jest.spyOn(repositorio, "findOne").mockResolvedValueOnce(passageiro1);
+    await service.liberaLugar("copacabana", onibus);
+    expect(onibus.lugares).toBe(28);
   });
 });
