@@ -21,7 +21,6 @@ export class PassagemService {
   }
 
   async procuraPassagem(pontoChegada: string) {
-    console.log("@@@@@@@@@@@" + pontoChegada);
     let passagem = await this.repositorio.findOne({
       where: {
         fimViagem: pontoChegada,
